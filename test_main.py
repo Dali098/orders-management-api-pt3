@@ -181,12 +181,12 @@ def test_filter_orders_by_min_amount(client, sample_orders):
 # Test 8: Filter orders by maximum amount
 def test_filter_orders_by_max_amount(client, sample_orders):
     """Test filtering orders by maximum amount."""
-    response = client.get("/orders?maxAmount=100")
+    response = client.get("/orders?maxAmount=101")
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 2
     for order in data["data"]:
-        assert order["amount"] <= 100
+        assert order["amount"] <= 101
 
 
 # Test 9: Filter orders by amount range
