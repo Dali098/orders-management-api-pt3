@@ -262,3 +262,12 @@ def test_empty_results_with_filters(client, sample_orders):
     assert data["total"] == 0
     assert data["totalPages"] == 0
     assert len(data["data"]) == 0
+
+def test_get_orders_sorted_by_date_desc(client, sample_orders):
+    """Orders should be returned in stable order: order_date desc."""
+    response = client.get("/orders")
+    assert response.status_code == 200
+    items = response.json()["data"]
+
+    dates = [o["order_date"] for o in items]
+    assert dates == sorted(dates, reverse=True)
