@@ -102,23 +102,26 @@ def get_orders(
     
     if params.startDate:
         conditions.append(Order.order_date >= params.startDate)
-    
+
     if params.endDate:
         conditions.append(Order.order_date <= params.endDate)
-    
+
     if conditions:
         query = query.filter(and_(*conditions))
-    
-    # Get total count
-    total = query.count()
-    
+
+    # Total count should not be affected by ORDER BY
+    total = query.order_by(None).count()
+
+    # Stable ordering for predictable pagination (important for 10k+ records)
+    query = query.order_by(Order.order_date.desc(), Order.id.desc())
+
     # Calculate pagination
     total_pages = math.ceil(total / params.limit) if total > 0 else 0
     skip = (params.page - 1) * params.limit
-    
+
     # Get paginated results
     orders = query.offset(skip).limit(params.limit).all()
-    
+
     return PaginatedOrderResponse(
         page=params.page,
         limit=params.limit,
@@ -126,7 +129,6 @@ def get_orders(
         totalPages=total_pages,
         data=orders
     )
-
 
 @app.get("/")
 def root():

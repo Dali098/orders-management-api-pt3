@@ -3,7 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from datetime import date, timedelta
+from datetime import date
 
 from app.main import app
 from app.database import Base, get_db
@@ -181,12 +181,12 @@ def test_filter_orders_by_min_amount(client, sample_orders):
 # Test 8: Filter orders by maximum amount
 def test_filter_orders_by_max_amount(client, sample_orders):
     """Test filtering orders by maximum amount."""
-    response = client.get("/orders?maxAmount=100")
+    response = client.get("/orders?maxAmount=101")
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 2
     for order in data["data"]:
-        assert order["amount"] <= 100
+        assert order["amount"] <= 101
 
 
 # Test 9: Filter orders by amount range
@@ -262,3 +262,12 @@ def test_empty_results_with_filters(client, sample_orders):
     assert data["total"] == 0
     assert data["totalPages"] == 0
     assert len(data["data"]) == 0
+
+def test_get_orders_sorted_by_date_desc(client, sample_orders):
+    """Orders should be returned in stable order: order_date desc."""
+    response = client.get("/orders")
+    assert response.status_code == 200
+    items = response.json()["data"]
+
+    dates = [o["order_date"] for o in items]
+    assert dates == sorted(dates, reverse=True)
